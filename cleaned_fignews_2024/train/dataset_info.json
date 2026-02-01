@@ -1,0 +1,82 @@
+{
+  "builder_name": "csv",
+  "citation": "",
+  "config_name": "default",
+  "dataset_name": "fignews-2024",
+  "dataset_size": 200817223,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/CAMeL-Lab/FIGNEWS-2024@44e3d1f65c2e1dad3732c83b31ad4023bec18e2d/FIGNEWS-2024.tsv": {
+      "num_bytes": 195799507,
+      "checksum": null
+    }
+  },
+  "download_size": 195799507,
+  "features": {
+    "batch": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "source_language": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "id": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "type": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "sheet_type": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "team_name": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "annotator_id": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "subtask": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "label": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "text": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "english_mt": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "notes": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 396616730,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 200817223,
+      "num_examples": 129800,
+      "dataset_name": "fignews-2024"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}
