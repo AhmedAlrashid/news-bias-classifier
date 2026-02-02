@@ -2,6 +2,50 @@ from playwright.sync_api import sync_playwright
 
 URL = "https://ground.news/article/democrat-christian-menefee-wins-special-election-for-vacant-deep-blue-house-seat-in-texas"
 
+
+def load_all_articles(page, max_clicks=30):
+    for _ in range(max_clicks):
+        clicked = page.evaluate("""
+        () => {
+            const btn = document.querySelector('#more-stories');
+            if (!btn || btn.disabled) return false;
+            btn.click();
+            return true;
+        }
+        """)
+        if not clicked:
+            break
+        page.wait_for_timeout(800)  # allow React to render
+
+def extract_headline_and_summary(raw_text):
+    lines = [l.strip() for l in raw_text.split("\n") if l.strip()]
+
+    # Find the index of "Ownership"
+    try:
+        ownership_idx = lines.index("Ownership")
+    except ValueError:
+        return None, None
+
+    content = lines[ownership_idx + 1:]
+
+    if not content:
+        return None, None
+
+    headline = content[0]
+
+    summary = None
+    if len(content) > 1:
+        # Stop summary at timestamps / junk
+        summary_parts = []
+        for l in content[1:]:
+            if any(stop in l for stop in ["day ago", "days ago", "Read Full Article"]):
+                break
+            summary_parts.append(l)
+        summary = " ".join(summary_parts) if summary_parts else None
+
+    return headline, summary
+
+
 def scrape():
     results = []
 
@@ -10,8 +54,17 @@ def scrape():
         page = browser.new_page()
 
         page.goto(URL, wait_until="domcontentloaded", timeout=60_000)
-        page.wait_for_selector("div[id='article-summary']", timeout=60_000)
+        page.evaluate("""
+        () => {
+            const modal = document.querySelector('#modal-content-wrapper');
+            if (modal) modal.remove();
 
+            const cookie = document.querySelector('.osano-cm-window');
+            if (cookie) cookie.remove();
+        }
+        """)
+        page.wait_for_selector("div[id='article-summary']", timeout=60_000)
+        load_all_articles(page)
         cards = page.query_selector_all("div[id='article-summary']")
         print(f"Found {len(cards)} article cards")
 
@@ -24,20 +77,31 @@ def scrape():
 
             href = link_el.get_attribute("href")
 
-            if "Left" in text:
-                bias = "Left"
+            # ---- bias detection (keep simple & robust) ----
+            if "Far Right" in text or "Right" in text:
+                bias = "Right"
             elif "Center" in text:
                 bias = "Center"
-            elif "Right" in text:
-                bias = "Right"
+            elif "Lean Left" in text or "Left" in text:
+                bias = "Left"
             else:
-                continue  # skip if no bias found
+                continue
+
+            # ---- outlet = first non-empty line ----
+            lines = [l.strip() for l in text.split("\n") if l.strip()]
+            outlet = lines[0]
+
+            # ---- headline + summary (YOU ALREADY WROTE THIS) ----
+            headline, summary = extract_headline_and_summary(text)
 
             results.append({
+                "outlet": outlet,
                 "bias": bias,
-                "link": href,
-                "raw_text": text[:200],  # debug-safe
+                "headline": headline,
+                "summary": summary,
+                "ground_news_interest_url": "https://ground.news" + href
             })
+
 
         browser.close()
 
