@@ -77,15 +77,24 @@ def scrape():
 
             href = link_el.get_attribute("href")
 
-            # ---- bias detection (keep simple & robust) ----
-            if "Far Right" in text or "Right" in text:
-                bias = "Right"
-            elif "Center" in text:
-                bias = "Center"
-            elif "Lean Left" in text or "Left" in text:
-                bias = "Left"
-            else:
-                continue
+            # ---- Bias detection (capture all 7 labels like in Sakhawat et al., 2026) ----
+            match text:
+                case _ if "Far Right" in text:
+                    bias = "Far Right"
+                case _ if "Right" in text:
+                    bias = "Right"
+                case _ if "Lean Right" in text:
+                    bias = "Lean Right"
+                case _ if "Center" in text:
+                    bias = "Center"
+                case _ if "Lean Left" in text:
+                    bias = "Lean Left"
+                case _ if "Left" in text:
+                    bias = "Left"
+                case _ if "Far Left" in text:
+                    bias = "Far Left"
+                case _:
+                    continue  # skip if no bias found
 
             # ---- outlet = first non-empty line ----
             lines = [l.strip() for l in text.split("\n") if l.strip()]
