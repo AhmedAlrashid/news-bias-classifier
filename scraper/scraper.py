@@ -18,7 +18,7 @@ def load_all_articles(page, max_clicks=30):
         page.wait_for_timeout(800)  # allow React to render
 
 def extract_headline_and_summary(raw_text):
-    lines = [l.strip() for l in raw_text.split("\n") if l.strip()]
+    lines = [line.strip() for line in raw_text.split("\n") if line.strip()]
 
     # Find the index of "Ownership"
     try:
@@ -37,10 +37,10 @@ def extract_headline_and_summary(raw_text):
     if len(content) > 1:
         # Stop summary at timestamps / junk
         summary_parts = []
-        for l in content[1:]:
-            if any(stop in l for stop in ["day ago", "days ago", "Read Full Article"]):
+        for line in content[1:]:
+            if any(stop in line for stop in ["day ago", "days ago", "Read Full Article"]):
                 break
-            summary_parts.append(l)
+            summary_parts.append(line)
         summary = " ".join(summary_parts) if summary_parts else None
 
     return headline, summary
@@ -88,7 +88,7 @@ def scrape():
                 continue
 
             # ---- outlet = first non-empty line ----
-            lines = [l.strip() for l in text.split("\n") if l.strip()]
+            lines = [line.strip() for line in text.split("\n") if line.strip()]
             outlet = lines[0]
 
             # ---- headline + summary (YOU ALREADY WROTE THIS) ----
