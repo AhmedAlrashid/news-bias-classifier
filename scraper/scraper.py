@@ -33,7 +33,7 @@ def title_to_slug(title):
     return slug
 
 
-def discover_article_urls_from_homepage(max_articles=10):
+def discover_article_urls_from_homepage(link,max_articles=10):
     """Go to Ground News homepage and extract article titles to build URLs"""
     article_urls = []
     
@@ -42,7 +42,7 @@ def discover_article_urls_from_homepage(max_articles=10):
         page = browser.new_page()
         
         print("Going to Ground News homepage...")
-        page.goto("https://ground.news/", wait_until="domcontentloaded", timeout=60_000)
+        page.goto(link, wait_until="domcontentloaded", timeout=60_000)
         
         # Handle popups
         page.evaluate("""
@@ -285,13 +285,13 @@ def scrape(url=None):
     return results
 
 
-def scrape_multiple_from_homepage(max_articles=5):
+def scrape_multiple_from_homepage(link, max_articles=10):
     """Discover article URLs from homepage and scrape each one"""
     all_results = []
     successful_scrapes = 0
     
     # Discover URLs from homepage
-    article_urls = discover_article_urls_from_homepage(max_articles)
+    article_urls = discover_article_urls_from_homepage(link,max_articles)
     
     if not article_urls:
         print("No article URLs discovered from homepage")
@@ -317,7 +317,7 @@ def scrape_multiple_from_homepage(max_articles=5):
     print(f"Successful: {successful_scrapes} articles")
     print(f"Total sources: {len(all_results)}")
     
-    return all_results
+    return all_results, successful_scrapes
 
 
 def save_data_to_file(data, filename=None):
@@ -397,26 +397,29 @@ def save_data_to_csv(data, filename=None):
 if __name__ == "__main__":
     # MODE 1: Scrape single article (original)
     # data = scrape()
+    links= ["https://web.archive.org/web/20260131033201/https://ground.news/","https://web.archive.org/web/20260130092108/https://ground.news/","https://web.archive.org/web/20260130092108/https://ground.news/","https://web.archive.org/web/20260129125216/https://ground.news/","https://web.archive.org/web/20260128031736/https://ground.news/","https://web.archive.org/web/20260127032451/https://ground.news/","https://web.archive.org/web/20260102001253/https://ground.news/","https://web.archive.org/web/20260117003056/https://ground.news/","https://web.archive.org/web/20260218025149/ground.news","https://web.archive.org/web/20260214161713/https://ground.news/"]    # MODE 2: Discover from homepage and scrape multiple
+    total=0
+    for link in links:
+        data = scrape_multiple_from_homepage(link,max_articles=10)  # Start small for testing
     
-    # MODE 2: Discover from homepage and scrape multiple
-    data = scrape_multiple_from_homepage(max_articles=3)  # Start small for testing
-    
-    print(f"\nCollected {len(data)} total sources\n")
-    
-    # Save data if we have any
-    if data:
-        # Save as JSON (best for ML training)
-        json_file = save_data_to_file(data)
+        print(f"\nCollected {data[1]} total sources\n")
+        total+=data[1]
+        # Save data if we have any
+        if data:
+            # Save as JSON (best for ML training)
+            json_file = save_data_to_file(data[0])
+            
+            # Optional: Also save as CSV for easy viewing
+            csv_file = save_data_to_csv(data[0])
+            
+            print(f"\n Ready for ML training!")
+            print(f"   JSON: {json_file}")
+            print(f"   CSV:  {csv_file}")
+        else:
+            print("\n  No data collected to save")
         
-        # Optional: Also save as CSV for easy viewing
-        csv_file = save_data_to_csv(data)
-        
-        print(f"\n Ready for ML training!")
-        print(f"   JSON: {json_file}")
-        print(f"   CSV:  {csv_file}")
-    else:
-        print("\n  No data collected to save")
-    
-    # Still print first few records for preview
-    for i, d in enumerate(data[:3]):
-        print(f"\n[{i+1}] {d}")
+        # Still print first few records for preview
+        for i, d in enumerate(data[0][:3]):
+            print(f"\n[{i+1}] {d}")
+    print(f"\n=== Final Summary ===")
+    print(f"Total sources collected: {total}")
