@@ -222,3 +222,7 @@ __marimo__/
 scraper/output/
 scraper/output/*.json
 scraper/output/*.csv
+
+# Ignore the saved models, too large
+domain-roberta-classifier/*
+domain-roberta-mlm/*
