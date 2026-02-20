@@ -224,5 +224,6 @@ scraper/output/*.json
 scraper/output/*.csv
 
 # Ignore the saved models, too large
-domain-roberta-classifier/*
+domain-roberta-classifier-base/*
+domain-roberta-classifier-pretrained/*
 domain-roberta-mlm/*
