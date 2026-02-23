@@ -26,6 +26,10 @@ def main():
     dataset = load_dataset("csv", data_files=csv_files)
     print(f"Loaded dataset with {len(dataset)} records.")
 
+    # Remove entries where summary is null or empty
+    dataset = dataset.filter(lambda x: x["summary"] is not None and x["summary"] != "")
+    print(f"Dataset after removing entries with null or empty summaries: {len(dataset)} records.")
+
     # Split the dataset into train, validation and test sets
 
     # 70% train, 15% validation, 15% test is standard ratio for splitting datasets.
