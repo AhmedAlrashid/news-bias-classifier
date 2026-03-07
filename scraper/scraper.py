@@ -397,7 +397,7 @@ def save_data_to_csv(data, filename=None):
 if __name__ == "__main__":
     # MODE 1: Scrape single article (original)
     # data = scrape()
-    links= ["https://web.archive.org/web/20260131033201/https://ground.news/","https://web.archive.org/web/20260130092108/https://ground.news/","https://web.archive.org/web/20260130092108/https://ground.news/","https://web.archive.org/web/20260129125216/https://ground.news/","https://web.archive.org/web/20260128031736/https://ground.news/","https://web.archive.org/web/20260127032451/https://ground.news/","https://web.archive.org/web/20260102001253/https://ground.news/","https://web.archive.org/web/20260117003056/https://ground.news/","https://web.archive.org/web/20260218025149/ground.news","https://web.archive.org/web/20260214161713/https://ground.news/"]    # MODE 2: Discover from homepage and scrape multiple
+    links= ["https://web.archive.org/web/20260224181632/https://ground.news/","https://web.archive.org/web/20260225065854/https://ground.news/","https://web.archive.org/web/20260101005031/https://ground.news/","https://web.archive.org/web/20251213021953/https://ground.news/"]    # MODE 2: Discover from homepage and scrape multiple
     total=0
     for link in links:
         data = scrape_multiple_from_homepage(link,max_articles=10)  # Start small for testing
