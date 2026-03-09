@@ -3,6 +3,18 @@ import glob
 
 from datasets import load_dataset
 
+# Print distribution of bias labels
+def print_bias_distribution(split, split_name):
+    bias_labels = split["bias"]
+    total = len(bias_labels)
+    from collections import Counter
+    counts = Counter(bias_labels)
+    print(f"Distribution of bias column in {split_name} set:")
+    for value, count in counts.items():
+        percent = 100 * count / total
+        print(f"Label: {value}, Count: {count}, Percent: {percent:.2f}%")
+    print("\n")
+
 def main():
     # Remove all json files from output directory
     print(os.getcwd())
@@ -38,10 +50,28 @@ def main():
     dataset["validation"] = dataset["test"].train_test_split(test_size=0.5, seed=42)["train"] # Split test set into validation and test sets
     dataset["test"] = dataset["test"].train_test_split(test_size=0.5, seed=42)["test"] # Split test set into validation and test sets
     print(dataset)
+
+    # Print distribution of the bias column in the train, validation and test sets
+    print_bias_distribution(dataset["train"], "train")
+    print_bias_distribution(dataset["validation"], "validation")
+    print_bias_distribution(dataset["test"], "test")
+
+    # Get length of each split
+    print(f"Length of train set: {len(dataset['train'])}")
+    print(f"Length of validation set: {len(dataset['validation'])}")
+    print(f"Length of test set: {len(dataset['test'])}")
+
+    print("Total length of dataset: ", len(dataset["train"]) + len(dataset["validation"]) + len(dataset["test"]))
+
+    #Output the dataset to csv files
+    # print("Saving dataset to csv files...")
+    # dataset["train"].to_csv(os.path.join(output_path, "train.csv"), index=False)
+    # dataset["validation"].to_csv(os.path.join(output_path, "validation.csv"), index=False)
+    # dataset["test"].to_csv(os.path.join(output_path, "test.csv"), index=False)
+    
     
     print("Saving dataset to Hugging Face")
-    dataset.push_to_hub("avanishd/ground-news-2026")
-
+    # dataset.push_to_hub("avanishd/ground-news-2026")
 
 
 if __name__ == "__main__":
