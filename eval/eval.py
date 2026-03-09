@@ -23,7 +23,7 @@ def main():
             .alias("predicted_bias_value")
         )
     else:
-        # Qwen outputis in format "assistant <think> </think> X.X" (spaces are newlines in actual output, see csv)
+        # Qwen output is in format "assistant <think> </think> X.X" (spaces are newlines in actual output, see csv)
         df = df.with_columns(
             pl.col("predicted_bias")
             .str.extract(r"assistant\s*<think>\s*</think>\s*([+-]?\d+\.?\d*)", 1)
