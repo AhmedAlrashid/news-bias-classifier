@@ -11,12 +11,25 @@ def main():
     df = pl.read_csv(args.csv)
 
     # Extract the text after the word assistant in predicted_bias and convert it to a float
-    df = df.with_columns(
-        pl.col("predicted_bias")
-        .str.extract(r"assistant([+-]?\d+\.?\d*)", 1)
-        .cast(pl.Float64)
-        .alias("predicted_bias_value")
-    )
+    # This only works for the granite models since they output the bias in the format "assistantX.X" where X.X is the bias value
+
+    args_csv_str = str(args.csv)
+    if "granite" in args_csv_str:
+        # Granite output is in format "assistantX.X" where X.X is the bias value
+        df = df.with_columns(
+            pl.col("predicted_bias")
+            .str.extract(r"assistant([+-]?\d+\.?\d*)", 1)
+            .cast(pl.Float64)
+            .alias("predicted_bias_value")
+        )
+    else:
+        # Qwen output is in format "assistant <think> </think> X.X" (spaces are newlines in actual output, see csv)
+        df = df.with_columns(
+            pl.col("predicted_bias")
+            .str.extract(r"assistant\s*<think>\s*</think>\s*([+-]?\d+\.?\d*)", 1)
+            .cast(pl.Float64)
+            .alias("predicted_bias_value")
+        )
 
     # print(df.head())
 
