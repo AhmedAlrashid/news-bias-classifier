@@ -33,7 +33,7 @@ def title_to_slug(title):
     return slug
 
 
-def discover_article_urls_from_homepage(link,max_articles=10):
+def discover_article_urls_from_homepage(link,max_articles=25):
     """Go to Ground News homepage and extract article titles to build URLs"""
     article_urls = []
     
@@ -41,8 +41,13 @@ def discover_article_urls_from_homepage(link,max_articles=10):
         browser = p.chromium.launch(headless=False)  # Set to True for production
         page = browser.new_page()
         
-        print("Going to Ground News homepage...")
-        page.goto(link, wait_until="domcontentloaded", timeout=60_000)
+        try:
+            print("Going to Ground News homepage...")
+            page.goto(link, wait_until="domcontentloaded", timeout=60_000)
+        except Exception as e:
+            print(f"  -> Homepage load error: {e}")
+            browser.close()
+            return article_urls
         
         # Handle popups
         page.evaluate("""
@@ -243,24 +248,14 @@ def scrape(url=None):
 
                 href = link_el.get_attribute("href")
 
-                # ---- Bias detection (capture all 7 labels like in Sakhawat et al., 2026) ----
+                # ---- Bias detection (only collect Far Left and Lean Right) ----
                 match text:
-                    case _ if "Far Right" in text:
-                        bias = "Far Right"
-                    case _ if "Right" in text:
-                        bias = "Right"
-                    case _ if "Lean Right" in text:
-                        bias = "Lean Right"
-                    case _ if "Center" in text:
-                        bias = "Center"
-                    case _ if "Lean Left" in text:
-                        bias = "Lean Left"
-                    case _ if "Left" in text:
-                        bias = "Left"
                     case _ if "Far Left" in text:
                         bias = "Far Left"
+                    case _ if "Lean Right" in text:
+                        bias = "Lean Right"
                     case _:
-                        continue  # skip if no bias found
+                        continue  # skip all other bias categories
 
                 # ---- outlet = first non-empty line ----
                 lines = [line.strip() for line in text.split("\n") if line.strip()]
@@ -285,7 +280,7 @@ def scrape(url=None):
     return results
 
 
-def scrape_multiple_from_homepage(link, max_articles=10):
+def scrape_multiple_from_homepage(link, max_articles=25):
     """Discover article URLs from homepage and scrape each one"""
     all_results = []
     successful_scrapes = 0
@@ -397,29 +392,380 @@ def save_data_to_csv(data, filename=None):
 if __name__ == "__main__":
     # MODE 1: Scrape single article (original)
     # data = scrape()
-    links= ["https://web.archive.org/web/20260131033201/https://ground.news/","https://web.archive.org/web/20260130092108/https://ground.news/","https://web.archive.org/web/20260130092108/https://ground.news/","https://web.archive.org/web/20260129125216/https://ground.news/","https://web.archive.org/web/20260128031736/https://ground.news/","https://web.archive.org/web/20260127032451/https://ground.news/","https://web.archive.org/web/20260102001253/https://ground.news/","https://web.archive.org/web/20260117003056/https://ground.news/","https://web.archive.org/web/20260218025149/ground.news","https://web.archive.org/web/20260214161713/https://ground.news/"]    # MODE 2: Discover from homepage and scrape multiple
+    links= [
+    "https://web.archive.org//web/20250117/ground.news",
+    "https://web.archive.org//web/20250118/ground.news",
+    "https://web.archive.org//web/20250119/ground.news",
+    "https://web.archive.org//web/20250120/ground.news",
+    "https://web.archive.org//web/20250121/ground.news",
+    "https://web.archive.org//web/20250122/ground.news",
+    "https://web.archive.org//web/20250123/ground.news",
+    "https://web.archive.org//web/20250124/ground.news",
+    "https://web.archive.org//web/20250125/ground.news",
+    "https://web.archive.org//web/20250126/ground.news",
+    "https://web.archive.org//web/20250127/ground.news",
+    "https://web.archive.org//web/20250128/ground.news",
+    "https://web.archive.org//web/20250129/ground.news",
+    "https://web.archive.org//web/20250130/ground.news",
+    "https://web.archive.org//web/20250131/ground.news",
+    "https://web.archive.org//web/20250201/ground.news",
+    "https://web.archive.org//web/20250202/ground.news",
+    "https://web.archive.org//web/20250204/ground.news",
+    "https://web.archive.org//web/20250205/ground.news",
+    "https://web.archive.org//web/20250206/ground.news",
+    "https://web.archive.org//web/20250207/ground.news",
+    "https://web.archive.org//web/20250208/ground.news",
+    "https://web.archive.org//web/20250209/ground.news",
+    "https://web.archive.org//web/20250210/ground.news",
+    "https://web.archive.org//web/20250211/ground.news",
+    "https://web.archive.org//web/20250212/ground.news",
+    "https://web.archive.org//web/20250213/ground.news",
+    "https://web.archive.org//web/20250214/ground.news",
+    "https://web.archive.org//web/20250215/ground.news",
+    "https://web.archive.org//web/20250216/ground.news",
+    "https://web.archive.org//web/20250217/ground.news",
+    "https://web.archive.org//web/20250218/ground.news",
+    "https://web.archive.org//web/20250219/ground.news",
+    "https://web.archive.org//web/20250220/ground.news",
+    "https://web.archive.org//web/20250221/ground.news",
+    "https://web.archive.org//web/20250222/ground.news",
+    "https://web.archive.org//web/20250223/ground.news",
+    "https://web.archive.org//web/20250224/ground.news",
+    "https://web.archive.org//web/20250225/ground.news",
+    "https://web.archive.org//web/20250226/ground.news",
+    "https://web.archive.org//web/20250227/ground.news",
+    "https://web.archive.org//web/20250228/ground.news",
+    "https://web.archive.org//web/20250301/ground.news",
+    "https://web.archive.org//web/20250302/ground.news",
+    "https://web.archive.org//web/20250303/ground.news",
+    "https://web.archive.org//web/20250304/ground.news",
+    "https://web.archive.org//web/20250305/ground.news",
+    "https://web.archive.org//web/20250306/ground.news",
+    "https://web.archive.org//web/20250307/ground.news",
+    "https://web.archive.org//web/20250308/ground.news",
+    "https://web.archive.org//web/20250309/ground.news",
+    "https://web.archive.org//web/20250310/ground.news",
+    "https://web.archive.org//web/20250311/ground.news",
+    "https://web.archive.org//web/20250312/ground.news",
+    "https://web.archive.org//web/20250313/ground.news",
+    "https://web.archive.org//web/20250314/ground.news",
+    "https://web.archive.org//web/20250315/ground.news",
+    "https://web.archive.org//web/20250316/ground.news",
+    "https://web.archive.org//web/20250317/ground.news",
+    "https://web.archive.org//web/20250318/ground.news",
+    "https://web.archive.org//web/20250319/ground.news",
+    "https://web.archive.org//web/20250320/ground.news",
+    "https://web.archive.org//web/20250321/ground.news",
+    "https://web.archive.org//web/20250322/ground.news",
+    "https://web.archive.org//web/20250323/ground.news",
+    "https://web.archive.org//web/20250324/ground.news",
+    "https://web.archive.org//web/20250325/ground.news",
+    "https://web.archive.org//web/20250326/ground.news",
+    "https://web.archive.org//web/20250327/ground.news",
+    "https://web.archive.org//web/20250328/ground.news",
+    "https://web.archive.org//web/20250329/ground.news",
+    "https://web.archive.org//web/20250330/ground.news",
+    "https://web.archive.org//web/20250331/ground.news",
+    "https://web.archive.org//web/20250401/ground.news",
+    "https://web.archive.org//web/20250402/ground.news",
+    "https://web.archive.org//web/20250403/ground.news",
+    "https://web.archive.org//web/20250404/ground.news",
+    "https://web.archive.org//web/20250405/ground.news",
+    "https://web.archive.org//web/20250406/ground.news",
+    "https://web.archive.org//web/20250407/ground.news",
+    "https://web.archive.org//web/20250408/ground.news",
+    "https://web.archive.org//web/20250409/ground.news",
+    "https://web.archive.org//web/20250410/ground.news",
+    "https://web.archive.org//web/20250411/ground.news",
+    "https://web.archive.org//web/20250412/ground.news",
+    "https://web.archive.org//web/20250413/ground.news",
+    "https://web.archive.org//web/20250414/ground.news",
+    "https://web.archive.org//web/20250415/ground.news",
+    "https://web.archive.org//web/20250416/ground.news",
+    "https://web.archive.org//web/20250417/ground.news",
+    "https://web.archive.org//web/20250418/ground.news",
+    "https://web.archive.org//web/20250419/ground.news",
+    "https://web.archive.org//web/20250420/ground.news",
+    "https://web.archive.org//web/20250421/ground.news",
+    "https://web.archive.org//web/20250422/ground.news",
+    "https://web.archive.org//web/20250423/ground.news",
+    "https://web.archive.org//web/20250424/ground.news",
+    "https://web.archive.org//web/20250425/ground.news",
+    "https://web.archive.org//web/20250426/ground.news",
+    "https://web.archive.org//web/20250427/ground.news",
+    "https://web.archive.org//web/20250428/ground.news",
+    "https://web.archive.org//web/20250429/ground.news",
+    "https://web.archive.org//web/20250430/ground.news",
+    "https://web.archive.org//web/20250501/ground.news",
+    "https://web.archive.org//web/20250502/ground.news",
+    "https://web.archive.org//web/20250503/ground.news",
+    "https://web.archive.org//web/20250504/ground.news",
+    "https://web.archive.org//web/20250505/ground.news",
+    "https://web.archive.org//web/20250506/ground.news",
+    "https://web.archive.org//web/20250507/ground.news",
+    "https://web.archive.org//web/20250508/ground.news",
+    "https://web.archive.org//web/20250509/ground.news",
+    "https://web.archive.org//web/20250510/ground.news",
+    "https://web.archive.org//web/20250511/ground.news",
+    "https://web.archive.org//web/20250512/ground.news",
+    "https://web.archive.org//web/20250513/ground.news",
+    "https://web.archive.org//web/20250514/ground.news",
+    "https://web.archive.org//web/20250515/ground.news",
+    "https://web.archive.org//web/20250516/ground.news",
+    "https://web.archive.org//web/20250517/ground.news",
+    "https://web.archive.org//web/20250518/ground.news",
+    "https://web.archive.org//web/20250519/ground.news",
+    "https://web.archive.org//web/20250520/ground.news",
+    "https://web.archive.org//web/20250521/ground.news",
+    "https://web.archive.org//web/20250522/ground.news",
+    "https://web.archive.org//web/20250523/ground.news",
+    "https://web.archive.org//web/20250524/ground.news",
+    "https://web.archive.org//web/20250525/ground.news",
+    "https://web.archive.org//web/20250526/ground.news",
+    "https://web.archive.org//web/20250527/ground.news",
+    "https://web.archive.org//web/20250528/ground.news",
+    "https://web.archive.org//web/20250529/ground.news",
+    "https://web.archive.org//web/20250530/ground.news",
+    "https://web.archive.org//web/20250531/ground.news",
+    "https://web.archive.org//web/20250601/ground.news",
+    "https://web.archive.org//web/20250602/ground.news",
+    "https://web.archive.org//web/20250603/ground.news",
+    "https://web.archive.org//web/20250604/ground.news",
+    "https://web.archive.org//web/20250605/ground.news",
+    "https://web.archive.org//web/20250606/ground.news",
+    "https://web.archive.org//web/20250607/ground.news",
+    "https://web.archive.org//web/20250608/ground.news",
+    "https://web.archive.org//web/20250609/ground.news",
+    "https://web.archive.org//web/20250610/ground.news",
+    "https://web.archive.org//web/20250611/ground.news",
+    "https://web.archive.org//web/20250612/ground.news",
+    "https://web.archive.org//web/20250613/ground.news",
+    "https://web.archive.org//web/20250614/ground.news",
+    "https://web.archive.org//web/20250615/ground.news",
+    "https://web.archive.org//web/20250616/ground.news",
+    "https://web.archive.org//web/20250617/ground.news",
+    "https://web.archive.org//web/20250618/ground.news",
+    "https://web.archive.org//web/20250619/ground.news",
+    "https://web.archive.org//web/20250620/ground.news",
+    "https://web.archive.org//web/20250621/ground.news",
+    "https://web.archive.org//web/20250622/ground.news",
+    "https://web.archive.org//web/20250623/ground.news",
+    "https://web.archive.org//web/20250624/ground.news",
+    "https://web.archive.org//web/20250625/ground.news",
+    "https://web.archive.org//web/20250626/ground.news",
+    "https://web.archive.org//web/20250627/ground.news",
+    "https://web.archive.org//web/20250628/ground.news",
+    "https://web.archive.org//web/20250629/ground.news",
+    "https://web.archive.org//web/20250630/ground.news",
+    "https://web.archive.org//web/20250701/ground.news",
+    "https://web.archive.org//web/20250702/ground.news",
+    "https://web.archive.org//web/20250703/ground.news",
+    "https://web.archive.org//web/20250704/ground.news",
+    "https://web.archive.org//web/20250705/ground.news",
+    "https://web.archive.org//web/20250706/ground.news",
+    "https://web.archive.org//web/20250707/ground.news",
+    "https://web.archive.org//web/20250708/ground.news",
+    "https://web.archive.org//web/20250709/ground.news",
+    "https://web.archive.org//web/20250710/ground.news",
+    "https://web.archive.org//web/20250711/ground.news",
+    "https://web.archive.org//web/20250712/ground.news",
+    "https://web.archive.org//web/20250713/ground.news",
+    "https://web.archive.org//web/20250714/ground.news",
+    "https://web.archive.org//web/20250715/ground.news",
+    "https://web.archive.org//web/20250716/ground.news",
+    "https://web.archive.org//web/20250717/ground.news",
+    "https://web.archive.org//web/20250718/ground.news",
+    "https://web.archive.org//web/20250719/ground.news",
+    "https://web.archive.org//web/20250720/ground.news",
+    "https://web.archive.org//web/20250721/ground.news",
+    "https://web.archive.org//web/20250722/ground.news",
+    "https://web.archive.org//web/20250723/ground.news",
+    "https://web.archive.org//web/20250724/ground.news",
+    "https://web.archive.org//web/20250725/ground.news",
+    "https://web.archive.org//web/20250726/ground.news",
+    "https://web.archive.org//web/20250727/ground.news",
+    "https://web.archive.org//web/20250728/ground.news",
+    "https://web.archive.org//web/20250729/ground.news",
+    "https://web.archive.org//web/20250730/ground.news",
+    "https://web.archive.org//web/20250731/ground.news",
+    "https://web.archive.org//web/20250801/ground.news",
+    "https://web.archive.org//web/20250802/ground.news",
+    "https://web.archive.org//web/20250803/ground.news",
+    "https://web.archive.org//web/20250804/ground.news",
+    "https://web.archive.org//web/20250805/ground.news",
+    "https://web.archive.org//web/20250806/ground.news",
+    "https://web.archive.org//web/20250807/ground.news",
+    "https://web.archive.org//web/20250808/ground.news",
+    "https://web.archive.org//web/20250809/ground.news",
+    "https://web.archive.org//web/20250810/ground.news",
+    "https://web.archive.org//web/20250811/ground.news",
+    "https://web.archive.org//web/20250812/ground.news",
+    "https://web.archive.org//web/20250813/ground.news",
+    "https://web.archive.org//web/20250814/ground.news",
+    "https://web.archive.org//web/20250815/ground.news",
+    "https://web.archive.org//web/20250816/ground.news",
+    "https://web.archive.org//web/20250817/ground.news",
+    "https://web.archive.org//web/20250818/ground.news",
+    "https://web.archive.org//web/20250819/ground.news",
+    "https://web.archive.org//web/20250820/ground.news",
+    "https://web.archive.org//web/20250821/ground.news",
+    "https://web.archive.org//web/20250822/ground.news",
+    "https://web.archive.org//web/20250823/ground.news",
+    "https://web.archive.org//web/20250824/ground.news",
+    "https://web.archive.org//web/20250825/ground.news",
+    "https://web.archive.org//web/20250826/ground.news",
+    "https://web.archive.org//web/20250827/ground.news",
+    "https://web.archive.org//web/20250828/ground.news",
+    "https://web.archive.org//web/20250829/ground.news",
+    "https://web.archive.org//web/20250830/ground.news",
+    "https://web.archive.org//web/20250831/ground.news",
+    "https://web.archive.org//web/20250901/ground.news",
+    "https://web.archive.org//web/20250902/ground.news",
+    "https://web.archive.org//web/20250903/ground.news",
+    "https://web.archive.org//web/20250904/ground.news",
+    "https://web.archive.org//web/20250905/ground.news",
+    "https://web.archive.org//web/20250906/ground.news",
+    "https://web.archive.org//web/20250907/ground.news",
+    "https://web.archive.org//web/20250908/ground.news",
+    "https://web.archive.org//web/20250909/ground.news",
+    "https://web.archive.org//web/20250910/ground.news",
+    "https://web.archive.org//web/20250911/ground.news",
+    "https://web.archive.org//web/20250912/ground.news",
+    "https://web.archive.org//web/20250913/ground.news",
+    "https://web.archive.org//web/20250914/ground.news",
+    "https://web.archive.org//web/20250915/ground.news",
+    "https://web.archive.org//web/20250916/ground.news",
+    "https://web.archive.org//web/20250917/ground.news",
+    "https://web.archive.org//web/20250918/ground.news",
+    "https://web.archive.org//web/20250919/ground.news",
+    "https://web.archive.org//web/20250920/ground.news",
+    "https://web.archive.org//web/20250921/ground.news",
+    "https://web.archive.org//web/20250922/ground.news",
+    "https://web.archive.org//web/20250923/ground.news",
+    "https://web.archive.org//web/20250924/ground.news",
+    "https://web.archive.org//web/20250925/ground.news",
+    "https://web.archive.org//web/20250926/ground.news",
+    "https://web.archive.org//web/20250927/ground.news",
+    "https://web.archive.org//web/20250928/ground.news",
+    "https://web.archive.org//web/20250929/ground.news",
+    "https://web.archive.org//web/20250930/ground.news",
+    "https://web.archive.org//web/20251001/ground.news",
+    "https://web.archive.org//web/20251002/ground.news",
+    "https://web.archive.org//web/20251003/ground.news",
+    "https://web.archive.org//web/20251004/ground.news",
+    "https://web.archive.org//web/20251005/ground.news",
+    "https://web.archive.org//web/20251006/ground.news",
+    "https://web.archive.org//web/20251007/ground.news",
+    "https://web.archive.org//web/20251008/ground.news",
+    "https://web.archive.org//web/20251009/ground.news",
+    "https://web.archive.org//web/20251010/ground.news",
+    "https://web.archive.org//web/20251011/ground.news",
+    "https://web.archive.org//web/20251012/ground.news",
+    "https://web.archive.org//web/20251013/ground.news",
+    "https://web.archive.org//web/20251014/ground.news",
+    "https://web.archive.org//web/20251015/ground.news",
+    "https://web.archive.org//web/20251016/ground.news",
+    "https://web.archive.org//web/20251017/ground.news",
+    "https://web.archive.org//web/20251018/ground.news",
+    "https://web.archive.org//web/20251019/ground.news",
+    "https://web.archive.org//web/20251020/ground.news",
+    "https://web.archive.org//web/20251021/ground.news",
+    "https://web.archive.org//web/20251022/ground.news",
+    "https://web.archive.org//web/20251023/ground.news",
+    "https://web.archive.org//web/20251024/ground.news",
+    "https://web.archive.org//web/20251025/ground.news",
+    "https://web.archive.org//web/20251026/ground.news",
+    "https://web.archive.org//web/20251028/ground.news",
+    "https://web.archive.org//web/20251029/ground.news",
+    "https://web.archive.org//web/20251030/ground.news",
+    "https://web.archive.org//web/20251031/ground.news",
+    "https://web.archive.org//web/20251101/ground.news",
+    "https://web.archive.org//web/20251102/ground.news",
+    "https://web.archive.org//web/20251103/ground.news",
+    "https://web.archive.org//web/20251104/ground.news",
+    "https://web.archive.org//web/20251105/ground.news",
+    "https://web.archive.org//web/20251106/ground.news",
+    "https://web.archive.org//web/20251107/ground.news",
+    "https://web.archive.org//web/20251108/ground.news",
+    "https://web.archive.org//web/20251109/ground.news",
+    "https://web.archive.org//web/20251110/ground.news",
+    "https://web.archive.org//web/20251111/ground.news",
+    "https://web.archive.org//web/20251112/ground.news",
+    "https://web.archive.org//web/20251113/ground.news",
+    "https://web.archive.org//web/20251114/ground.news",
+    "https://web.archive.org//web/20251115/ground.news",
+    "https://web.archive.org//web/20251116/ground.news",
+    "https://web.archive.org//web/20251117/ground.news",
+    "https://web.archive.org//web/20251118/ground.news",
+    "https://web.archive.org//web/20251119/ground.news",
+    "https://web.archive.org//web/20251120/ground.news",
+    "https://web.archive.org//web/20251122/ground.news",
+    "https://web.archive.org//web/20251124/ground.news",
+    "https://web.archive.org//web/20251125/ground.news",
+    "https://web.archive.org//web/20251126/ground.news",
+    "https://web.archive.org//web/20251127/ground.news",
+    "https://web.archive.org//web/20251128/ground.news",
+    "https://web.archive.org//web/20251129/ground.news",
+    "https://web.archive.org//web/20251130/ground.news",
+    "https://web.archive.org//web/20251201/ground.news",
+    "https://web.archive.org//web/20251202/ground.news",
+    "https://web.archive.org//web/20251203/ground.news",
+    "https://web.archive.org//web/20251204/ground.news",
+    "https://web.archive.org//web/20251205/ground.news",
+    "https://web.archive.org//web/20251206/ground.news",
+    "https://web.archive.org//web/20251207/ground.news",
+    "https://web.archive.org//web/20251208/ground.news",
+    "https://web.archive.org//web/20251209/ground.news",
+    "https://web.archive.org//web/20251210/ground.news",
+    "https://web.archive.org//web/20251211/ground.news",
+    "https://web.archive.org//web/20251212/ground.news",
+    "https://web.archive.org//web/20251213/ground.news",
+    "https://web.archive.org//web/20251214/ground.news",
+    "https://web.archive.org//web/20251215/ground.news",
+    "https://web.archive.org//web/20251216/ground.news",
+    "https://web.archive.org//web/20251217/ground.news",
+    "https://web.archive.org//web/20251218/ground.news",
+    "https://web.archive.org//web/20251219/ground.news",
+    "https://web.archive.org//web/20251220/ground.news",
+    "https://web.archive.org//web/20251221/ground.news",
+    "https://web.archive.org//web/20251222/ground.news",
+    "https://web.archive.org//web/20251223/ground.news",
+    "https://web.archive.org//web/20251224/ground.news",
+    "https://web.archive.org//web/20251225/ground.news",
+    "https://web.archive.org//web/20251226/ground.news",
+    "https://web.archive.org//web/20251227/ground.news",
+    "https://web.archive.org//web/20251228/ground.news",
+    "https://web.archive.org//web/20251229/ground.news",
+    "https://web.archive.org//web/20251230/ground.news",
+    "https://web.archive.org//web/20251231/ground.news",
+]
     total=0
     for link in links:
-        data = scrape_multiple_from_homepage(link,max_articles=10)  # Start small for testing
-    
-        print(f"\nCollected {data[1]} total sources\n")
-        total+=data[1]
-        # Save data if we have any
-        if data:
-            # Save as JSON (best for ML training)
-            json_file = save_data_to_file(data[0])
-            
-            # Optional: Also save as CSV for easy viewing
-            csv_file = save_data_to_csv(data[0])
-            
-            print(f"\n Ready for ML training!")
-            print(f"   JSON: {json_file}")
-            print(f"   CSV:  {csv_file}")
-        else:
-            print("\n  No data collected to save")
+        try:
+            data = scrape_multiple_from_homepage(link,max_articles=10)  # Start small for testing
         
-        # Still print first few records for preview
-        for i, d in enumerate(data[0][:3]):
-            print(f"\n[{i+1}] {d}")
+            print(f"\nCollected {data[1]} total sources\n")
+            total+=data[1]
+            # Save data if we have any
+            if data:
+                # Save as JSON (best for ML training)
+                json_file = save_data_to_file(data[0])
+                
+                # Optional: Also save as CSV for easy viewing
+                csv_file = save_data_to_csv(data[0])
+                
+                print(f"\n Ready for ML training!")
+                print(f"   JSON: {json_file}")
+                print(f"   CSV:  {csv_file}")
+            else:
+                print("\n  No data collected to save")
+            
+            # Still print first few records for preview
+            for i, d in enumerate(data[0][:3]):
+                print(f"\n[{i+1}] {d}")
+                
+        except Exception as e:
+            print(f"\n  -> Skipping link due to error: {e}")
+            print(f"  -> Continuing with next link...")
     print(f"\n=== Final Summary ===")
     print(f"Total sources collected: {total}")
