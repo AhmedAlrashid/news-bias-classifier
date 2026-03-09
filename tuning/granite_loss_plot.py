@@ -1,70 +1,57 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import re
+import os
+
+import argparse
 
 def main():
-    # Load the baseline losses from the text file
-    baseline_losses = [] # Batch size = 2, gradient accumulation = 4
-    batch_size_16_losses = [] # Batch size = 4, gradient accumulation = 4
-    batch_size_32_grad_8_losses = [] # Batch size = 4, gradient accumulation = 8
-    batch_size_32_grad_4_losses = [] # Batch size = 8, gradient accumulation = 4
-    
-    # Parse the HTML table to extract the loss values
-    with open("tuning/baseline_losses.txt", "r") as f:
-       html = f.read()
-       baseline_losses = [float(x) for x in re.findall(r'<td>(\d+\.\d+)</td>', html)]
+   # Load the baseline losses from the text file
+   parser = argparse.ArgumentParser()
+   parser.add_argument("--dir", type=str, help="Path to the baseline losses directory", required=True)
+   parser.add_argument("--model", type=str, choices=["granite", "qwen"], default="granite", help="Model name for plot title")
+   args = parser.parse_args()
 
-    with open("tuning/batch_size_16_losses.txt", "r") as f:
-       html = f.read()
-       batch_size_16_losses = [float(x) for x in re.findall(r'<td>(\d+\.\d+)</td>', html)]
+   # Sanity check to ensure the directory exists and contains files
+   if not os.path.exists(args.dir):
+      raise ValueError(f"Directory {args.dir} does not exist. Please provide a valid directory with loss files.")
+   elif len(os.listdir(args.dir)) == 0:
+      raise ValueError(f"No files found in directory {args.dir}. Please provide a valid directory with loss files.")
 
-    with open("tuning/batch_size_32_grad_8_losses.txt", "r") as f:
-       html = f.read()
-       batch_size_32_grad_8_losses = [float(x) for x in re.findall(r'<td>(\d+\.\d+)</td>', html)]
-    
-    with open("tuning/batch_size_32_grad_4_losses.txt", "r") as f:
-       html = f.read()
-       batch_size_32_grad_4_losses = [float(x) for x in re.findall(r'<td>(\d+\.\d+)</td>', html)]
+   losses = [[float(x) for x in re.findall(r'<td>(\d+\.\d+)</td>', open(os.path.join(args.dir, file)).read())] for file in os.listdir(args.dir)]
 
-    # Total steps
-    # Since baseline is the most number of steps, no need to find the max
-    total_steps = len(baseline_losses)
-    print(f"Max number of steps: {total_steps}")
+   # Total steps max
+   total_steps = max(len(loss) for loss in losses)
+   print(f"Max number of steps: {total_steps}")
 
-    # Create normalized epoch values (0 → 1)
-    
-    epochs = np.linspace(0, 1, total_steps)
+   # Create normalized epoch values (0 → 1)
 
-    window = 20
-    smoothed = np.convolve(baseline_losses, np.ones(window)/window, mode='valid')
-    smoothed_epochs = epochs[:len(smoothed)]
+   epochs = np.linspace(0, 1, total_steps)
 
-    batch_size_16_smoothed = np.convolve(batch_size_16_losses, np.ones(window)/window, mode='valid')
-    batch_size_16_smoothed_epochs = epochs[:len(batch_size_16_smoothed)]
+   window = 20
 
-    batch_size_32_grad_8_smoothed = np.convolve(batch_size_32_grad_8_losses, np.ones(window)/window, mode='valid')
-    batch_size_32_grad_8_smoothed_epochs = epochs[:len(batch_size_32_grad_8_smoothed)]
+   # Plot using smooth losses (moving average of 20)
+   plt.figure(figsize=(10, 5))
 
-    batch_size_32_grad_4_smoothed = np.convolve(batch_size_32_grad_4_losses, np.ones(window)/window, mode='valid')
-    batch_size_32_grad_4_smoothed_epochs = epochs[:len(batch_size_32_grad_4_smoothed)]
+   for i in range(len(losses)):
+      smoothed = np.convolve(losses[i], np.ones(window)/window, mode='valid')
+      smoothed_epochs = epochs[:len(smoothed)]
+      label_name = os.listdir(args.dir)[i].split(".")[0]
+      plt.plot(smoothed_epochs, smoothed, linewidth=2, label=label_name)
 
-    # Plot
-    plt.figure(figsize=(10, 5))
-    # plt.plot(epochs, losses, linewidth=1)
-    
-    # plt.plot(epochs, baseline_losses, alpha=0.3, label="Raw Loss Baseline")
-    plt.plot(smoothed_epochs, smoothed, linewidth=2, label="Smoothed Loss Baseline")
-    plt.plot(batch_size_16_smoothed_epochs, batch_size_16_smoothed, linewidth=2, label="Batch Size 16 Smoothed Loss")
-    plt.plot(batch_size_32_grad_8_smoothed_epochs, batch_size_32_grad_8_smoothed, linewidth=2, label="Batch Size 32, Grad 8 Smoothed Loss")
-    plt.plot(batch_size_32_grad_4_smoothed_epochs, batch_size_32_grad_4_smoothed, linewidth=2, label="Batch Size 32, Grad 4 Smoothed Loss")
-    plt.legend()
-    
-    plt.xlabel("Epoch")
-    plt.ylabel("Training Loss")
-    plt.title("Granite 4 Training Loss")
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+   plt.legend()
+
+   plt.xlabel("Epoch")
+   plt.ylabel("Training Loss")
+   match args.model:
+      case "granite":
+         plt.title("Granite 4 Training Loss")
+      case "qwen":
+         plt.title("Qwen 3.5 Training Loss")
+         
+   plt.grid(True)
+   plt.tight_layout()
+   plt.show()
 
 if __name__ == "__main__":
     main()
