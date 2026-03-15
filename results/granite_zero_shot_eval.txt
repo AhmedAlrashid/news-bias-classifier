@@ -1,15 +1,15 @@
-Mean Absolute Error: 1.7026958290946084
+Mean Absolute Error: 1.7995930824008137
 Classification Report:
               precision    recall  f1-score   support
 
-      Center       0.38      0.24      0.30       371
+      Center       0.40      0.14      0.21       371
     Far Left       0.00      0.00      0.00         0
    Far Right       0.00      0.00      0.00        26
-   Lean Left       0.27      0.17      0.21       252
+   Lean Left       0.32      0.09      0.14       252
   Lean Right       0.00      0.00      0.00         0
-        Left       0.05      0.45      0.09        51
-       Right       0.33      0.00      0.01       283
+        Left       0.06      0.73      0.10        51
+       Right       0.00      0.00      0.00       283
 
-    accuracy                           0.16       983
-   macro avg       0.15      0.12      0.09       983
-weighted avg       0.31      0.16      0.17       983
+    accuracy                           0.11       983
+   macro avg       0.11      0.14      0.06       983
+weighted avg       0.24      0.11      0.12       983
