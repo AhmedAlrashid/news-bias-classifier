@@ -1,5 +1,6 @@
 import os
 import glob
+import random
 
 from datasets import load_dataset
 
@@ -14,6 +15,14 @@ def print_bias_distribution(split, split_name):
         percent = 100 * count / total
         print(f"Label: {value}, Count: {count}, Percent: {percent:.2f}%")
     print("\n")
+
+# Randomly remove 70% of lean right examples
+# Number chosen manually to balance the distribution (after synthetic generation of far left, far right, and left examples)
+def downsample_lean_right(example):
+        if example["bias"] == "Lean Right" or example["bias"] == "lean right":
+            return random.random() < 0.3 # R 
+        else:
+            return True
 
 def main():
     # Remove all json files from output directory
@@ -38,9 +47,9 @@ def main():
     dataset = load_dataset("csv", data_files=csv_files)
     print(f"Loaded dataset with {len(dataset)} records.")
 
-    # Remove entries where summary is null or empty
+    # Remove entries where the summary or headline is null or empty
     dataset = dataset.filter(lambda x: x["summary"] is not None and x["summary"] != "")
-    print(f"Dataset after removing entries with null or empty summaries: {len(dataset)} records.")
+    dataset = dataset.filter(lambda x: x["headline"] is not None and x["headline"] != "")
 
     # Split the dataset into train, validation and test sets
 
@@ -50,6 +59,13 @@ def main():
     dataset["validation"] = dataset["test"].train_test_split(test_size=0.5, seed=42)["train"] # Split test set into validation and test sets
     dataset["test"] = dataset["test"].train_test_split(test_size=0.5, seed=42)["test"] # Split test set into validation and test sets
     print(dataset)
+
+    # Randomly downsample lean right examples to balance the dataset, as mentioned by TA
+    print("Randomly downsampling lean right examples to balance the dataset...")
+        
+    dataset["train"] = dataset["train"].filter(downsample_lean_right, load_from_cache_file=False, batched=False)
+    dataset["validation"] = dataset["validation"].filter(downsample_lean_right, load_from_cache_file=False, batched=False)
+    dataset["test"] = dataset["test"].filter(downsample_lean_right, load_from_cache_file=False, batched=False)
 
     # Print distribution of the bias column in the train, validation and test sets
     print_bias_distribution(dataset["train"], "train")
@@ -62,16 +78,9 @@ def main():
     print(f"Length of test set: {len(dataset['test'])}")
 
     print("Total length of dataset: ", len(dataset["train"]) + len(dataset["validation"]) + len(dataset["test"]))
-
-    #Output the dataset to csv files
-    # print("Saving dataset to csv files...")
-    # dataset["train"].to_csv(os.path.join(output_path, "train.csv"), index=False)
-    # dataset["validation"].to_csv(os.path.join(output_path, "validation.csv"), index=False)
-    # dataset["test"].to_csv(os.path.join(output_path, "test.csv"), index=False)
-    
     
     print("Saving dataset to Hugging Face")
-    # dataset.push_to_hub("avanishd/ground-news-2026")
+    dataset.push_to_hub("avanishd/ground-news-2026")
 
 
 if __name__ == "__main__":
