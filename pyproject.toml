@@ -1,14 +1,21 @@
 [project]
 name = "news-bias-classifier"
 version = "0.1.0"
-description = "Add your description here"
+description = "Political lean detection using language models"
 readme = "README.md"
 requires-python = ">=3.13"
+
+# We also used triton, mamba-ssm, casual-conv1d, unsloth, and unsloth-zoo, but triton is only on Linux
 dependencies = [
     "beautifulsoup4>=4.14.3",
     "datasets>=4.5.0",
     "matplotlib>=3.10.8",
+    "numpy>=2.4.2",
+    "optuna>=4.8.0",
+    "pillow>=12.1.1",
     "playwright>=1.58.0",
     "polars>=1.38.1",
     "scikit-learn>=1.8.0",
+    "torch>=2.10.0",
+    "transformers[torch]>=5.3.0",
 ]
