@@ -38,7 +38,7 @@ def discover_article_urls_from_homepage(link,max_articles=10):
     article_urls = []
     
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)  # Set to True for production
+        browser = p.chromium.launch(headless=False)
         page = browser.new_page()
         
         print("Going to Ground News homepage...")
@@ -117,7 +117,6 @@ def discover_article_urls_from_homepage(link,max_articles=10):
             # Convert title to slug and add placeholder ID
             slug = title_to_slug(title)
             if slug:
-                # Add a placeholder ID since we don't know the real one
                 placeholder_id = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz0123456789', k=6))
                 article_urls.append(f"https://ground.news/article/{slug}_{placeholder_id}")
     
@@ -181,12 +180,12 @@ def scrape(url=None):
                ("404" in page_title.lower()) or \
                ("not found" in page_title.lower()) or \
                ("page not found" in page_content.lower()[:1000]):
-                print(f"  -> 404 Error: Article not found")
+                print(f"404 Error: Article not found")
                 browser.close()
                 return []
             
         except Exception as e:
-            print(f"  -> Page load error: {e}")
+            print(f"Page load error: {e}")
             browser.close()
             return []
 
@@ -219,20 +218,20 @@ def scrape(url=None):
                     try:
                         alt_elements = page.query_selector_all(alt_selector)
                         if alt_elements:
-                            print(f"  -> Found alternative content: {alt_selector} ({len(alt_elements)} elements)")
+                            print(f"Found alternative content: {alt_selector} ({len(alt_elements)} elements)")
                             found_alternative = True
                             break
                     except:
                         continue
                 
                 if not found_alternative:
-                    print(f"  -> No recognizable article content found")
+                    print(f"No recognizable article content found")
                     browser.close()
                     return []
                 
             load_all_articles(page)
             cards = page.query_selector_all("div[id='article-summary']")
-            print(f"  -> Found {len(cards)} article cards")
+            print(f"Found {len(cards)} article cards")
 
             for card in cards:
                 text = card.inner_text()
@@ -262,11 +261,9 @@ def scrape(url=None):
                     case _:
                         continue  # skip if no bias found
 
-                # ---- outlet = first non-empty line ----
                 lines = [line.strip() for line in text.split("\n") if line.strip()]
                 outlet = lines[0]
 
-                # ---- headline + summary (YOU ALREADY WROTE THIS) ----
                 headline, summary = extract_headline_and_summary(text)
 
                 results.append({
@@ -406,10 +403,7 @@ if __name__ == "__main__":
         total+=data[1]
         # Save data if we have any
         if data:
-            # Save as JSON (best for ML training)
             json_file = save_data_to_file(data[0])
-            
-            # Optional: Also save as CSV for easy viewing
             csv_file = save_data_to_csv(data[0])
             
             print(f"\n Ready for ML training!")
